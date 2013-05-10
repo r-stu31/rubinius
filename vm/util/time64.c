@@ -323,6 +323,14 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
   }
 
   time64_t time = (time64_t) func(&tm);
+  if(time == -1) {
+    /*
+      likely cause: time in DST gap
+      try one more time, use nonnegative tm_isdst
+    */
+    (&tm)->tm_isdst = 0;
+    time = (time64_t) func(&tm);
+  }
   tm_to_tm64(&tm, tm64);
 
   if(year != tm64->tm_year) {
